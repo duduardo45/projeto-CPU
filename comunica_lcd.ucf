@@ -1,0 +1,30 @@
+NET "clk" LOC = "C9" | IOSTANDARD = LVCMOS33;
+NET "clk" PERIOD = 20.0ns HIGH 50%;
+
+# Botão BTN_SOUTH utilizado como reset (pino K17) [cite: 76, 77]
+NET "reset" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN;
+
+# ---- Sinais de Controlo do LCD ----------------------------
+# LCD_E, LCD_RS e LCD_RW [cite: 204]
+NET "lcd_e" LOC = "M18" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+NET "rs"    LOC = "L18" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+NET "rw"    LOC = "L17" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+
+# ---- Sinais de Dados do LCD (Interface de 4 bits) ---------
+# Partilhados com os dados da StrataFlash (SF_D<11:8>) [cite: 206]
+# data_out(3) corresponde a DB7 / SF_D<11> no pino M15 [cite: 190, 206]
+NET "data_out<3>" LOC = "M15" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+
+# data_out(2) corresponde a DB6 / SF_D<10> no pino P17 [cite: 190, 206]
+NET "data_out<2>" LOC = "P17" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+
+# data_out(1) corresponde a DB5 / SF_D<9> no pino R16 [cite: 190, 206]
+NET "data_out<1>" LOC = "R16" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+
+# data_out(0) corresponde a DB4 / SF_D<8> no pino R15 [cite: 190, 206]
+NET "data_out<0>" LOC = "R15" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+
+# ---- Desativar StrataFlash --------------------------------
+# O pino sf_ce0 liga-se ao StrataFlash Chip Enable. 
+# Ao mantê-lo a '1' (High), liberta o barramento para o LCD.
+NET "sf_ce0" LOC = "D16" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;

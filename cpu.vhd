@@ -31,6 +31,16 @@ architecture Behavioral of cpu is
     -- FSM para as operacoes da cpu
     type FSM_CPU is (FETCH, DECODE_1, DECODE_2, EXECUTE);
     signal STATE : FSM_CPU := FETCH;
+    
+    type FSM_OPS is (MEM, ALU, JUMP, HALT);
+    type FSM_MEMORY is (MEM_WRITE, MEM_READ); 
+    type FSM_ALU is (SHIFT, DEC, GENERIC_OP); 
+    type FSM_JUMP is (GENERIC_OP);  
+
+    signal CURRENT_OP : FSM_OPS := JUMP;
+    signal MEMORY_ST : FSM_MEMORY := MEM_WRITE;
+    signal ALU_ST : FSM_ALU := GENERIC_OP;
+    signal JUMP_ST : FSM_JUMP := GENERIC_OP;
 
     signal ALU_A     : STD_LOGIC_VECTOR(7 downto 0) := x"00";
     signal ALU_B     : STD_LOGIC_VECTOR(7 downto 0) := x"00";
@@ -128,8 +138,9 @@ begin
                                 
                                 case op2 is 
                                     when "00" => -- push
-                                        
-                                        
+                                        --guarda o valor de Rx (op1) na pilha (SP)
+                                        MAR <= SP;
+                                        MBR <= REG( to_integer(unsigned(op1)) );
                                         
                                     when "01" => -- pop
                                     
@@ -176,7 +187,11 @@ begin
                             REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
                             PC <= PC + 1;
                             MBR <= PC + 1;
+                        
+                        elsif IR(6) = '0' then -- instruções de memória
+                                
                         end if;
+
 
                         STATE <= FETCH;
                         

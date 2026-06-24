@@ -14,7 +14,7 @@ entity cpu is
         
     );
 end cpu;
--- TODO: criar top level que integre com memória e lcd, e alterar o lcd para receber valores da memoria
+-- TODO: criar top level que integre com memÃ³ria e lcd, e alterar o lcd para receber valores da memoria
 architecture Behavioral of cpu is        
     
     -- registradores
@@ -42,6 +42,9 @@ architecture Behavioral of cpu is
 
     variable opcode : STD_LOGIC_VECTOR(3 downto 0) := "0000";
     variable op1, op2 : STD_LOGIC_VECTOR(1 downto 0) := "00";
+    
+    -- Variaveis e sinais de memÃ³ria:
+    signal pos_255_reg : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
 
 begin
 
@@ -55,6 +58,16 @@ begin
             FLAGS     => ALU_FLAGS,
             S         => ALU_S
         );
+    u_ram : entity work.RAM_8x256(rtl)
+        port map (
+            CLK     => CLK,
+            DIN     => RAM_DIN,
+            ADDR    => RAM_ADDR,
+            WE      => WE,
+            DOUT    => RAM_DOUT,
+            POS_255 => pos_255_reg
+        );
+            
     
     p_fsm_cycle : process(CLK)
     begin
@@ -90,7 +103,7 @@ begin
                         -- add Rx, Ry
                         -- OPCODE "0000" & Rx & Ry
                         -- Rx <- Rx + Ry, pc <- pc + 1
-                        if opcode(3) = "0" then -- instruções de ALU
+                        if opcode(3) = "0" then -- instruÃ§Ãµes de ALU
                         
                             if opcode = "0010" and op2 = "01" then
                                 -- DEC
@@ -108,27 +121,48 @@ begin
                                 ALU_CMD <= opcode;
                             end if;
                         
-                        elsif opcode(2) = '0' then -- instrução de memória
+                        elsif opcode(2) = '0' then -- instruÃ§Ã£o de memÃ³ria
                         
-                        -- TODO: preencher as operações de memória
+                        -- TODO: preencher as operaÃ§Ãµes de memÃ³ria
+                            if opcode(0) = '0' then -- instruÃ§Ãµes que utilizam apenas um registrador;
+                                
+                                case op2 is 
+                                    when "00" => -- push
+                                        
+                                        
+                                        
+                                    when "01" => -- pop
+                                    
+                                    when "10" => -- st
+                                    
+                                    when "11" => --ld
+                                        
+                                        
+                                    
+                                    end case;
+                                
+                                
                         
-                        else -- instrução de salto ou halt
+                            
+                        
+                        else -- instruÃ§Ã£o de salto ou halt
                         
                             if opcode = "1111" then
                             
-                                -- instrução de parada
+                                -- instruÃ§Ã£o de parada
                             
                             end if;
                         
-                            -- TODO: preencher estas operações
+                            -- TODO: preencher estas operaÃ§Ãµes
                             
                         end if;
                         STATE <= DECODE_2;
 
                     -- DECODE fetched opcode 
                     when DECODE_2 =>
-                        if IR(7) = "0" then -- instruções de ALU
-                            NULL; -- iremos salvar o dado da operação com a ALU no estado EXECUTE
+                    -- apenas nos casos que precisa de PC+1
+                        if IR(7) = "0" then -- instruÃ§Ãµes de ALU
+                            NULL; -- iremos salvar o dado da operaÃ§Ã£o com a ALU no estado EXECUTE
                         end if;
                         
                         STATE <= EXECUTE;
@@ -138,7 +172,7 @@ begin
                         -- add Rx, Ry
                         -- OPCODE "0000" & Rx & Ry
                         -- Rx <- Rx + Ry, pc <- pc + 1
-                        if IR(7) = "0" then -- instruções de ALU
+                        if IR(7) = "0" then -- instruÃ§Ãµes de ALU
                             REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
                             PC <= PC + 1;
                             MBR <= PC + 1;
@@ -152,7 +186,7 @@ begin
                 end case;
             end if;
         end if;
-    end process;
+    end process p_fsm_cycle;
     
     RAM_ADDR <= MBR;
     

@@ -34,13 +34,13 @@ architecture Behavioral of cpu is
     
     type FSM_OPS is (MEM, ALU, JUMP, HALT);
     type FSM_MEMORY is (MEM_WRITE, MEM_READ); 
-    type FSM_ALU is (SHIFT, DEC, GENERIC_OP); 
-    type FSM_JUMP is (GENERIC_OP);  
+    type FSM_ALU is (GENERIC_OP, DEC, SHIFT); 
+    type FSM_JUMP is (JMP, JMPR, BZ, BNZ, BCS, BCC, BEQ, BNEQ, BGT, BLT);  
 
     signal CURRENT_OP : FSM_OPS := JUMP;
-    signal MEMORY_ST : FSM_MEMORY := MEM_WRITE;
-    signal ALU_ST : FSM_ALU := GENERIC_OP;
-    signal JUMP_ST : FSM_JUMP := GENERIC_OP;
+    signal MEMORY_OP  : FSM_MEMORY := MEM_WRITE;
+    signal ALU_OP     : FSM_ALU := GENERIC_OP;
+    signal JUMP_OP    : FSM_JUMP := GENERIC_OP;
 
     signal ALU_A     : STD_LOGIC_VECTOR(7 downto 0) := x"00";
     signal ALU_B     : STD_LOGIC_VECTOR(7 downto 0) := x"00";
@@ -163,7 +163,21 @@ begin
                                 -- instrução de parada
                             
                             end if;
-                        
+                            
+                            if IR(3 downto 0) = "0000" then -- jump para o endereço PC+1
+
+                            end if;
+
+                            -- jump para endereço em Rx
+                            
+
+                            if opcode(1 downto 0) = "00" then
+
+                            elsif opcode(1 downto 0) = "01" then
+                            
+                            elsif opcode(1 downto 0) = "10" then
+                            
+                            end if;
                             -- TODO: preencher estas operações
                             
                         end if;
@@ -180,17 +194,30 @@ begin
 
                     -- EXECUTE instruction
                     when EXECUTE =>
-                        -- add Rx, Ry
-                        -- OPCODE "0000" & Rx & Ry
-                        -- Rx <- Rx + Ry, pc <- pc + 1
-                        if IR(7) = "0" then -- instruções de ALU
-                            REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
-                            PC <= PC + 1;
-                            MBR <= PC + 1;
-                        
-                        elsif IR(6) = '0' then -- instruções de memória
-                                
-                        end if;
+
+                        case CURRENT_OP is
+                            when ALU =>
+                                case ALU_ST is
+                                    when GENERIC_OP =>
+                                        REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
+                                        PC <= PC + 1;
+                                        MBR <= PC + 1;
+                                    when DEC =>
+                                        REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
+                                        PC <= PC + 1;
+                                        MBR <= PC + 1;
+                                    when SHIFT =>
+                                        REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
+                                        PC <= PC + 1;
+                                        MBR <= PC + 1;
+                                end case;
+                            when MEM =>
+                                MEMORY_ST <= MEM_WRITE;
+                            when JUMP =>
+                                JUMP_ST <= GENERIC_OP;
+                            when HALT =>
+                                NULL;
+                        end case;
 
 
                         STATE <= FETCH;

@@ -33,7 +33,7 @@ architecture Behavioral of cpu is
     signal STATE : FSM_CPU := FETCH;
     
     type FSM_OPS is (MEM, ALU, JUMP, HALT);
-    type FSM_MEMORY is (MEM_WRITE, MEM_READ); 
+    type FSM_MEMORY is (PUSH, POP, ST, LD, LDR, STR, MOV, MEM_READ, MEM_WRITE); -- Apesar de serem muitos estados, prefiro deixar assim para facilitar a leitura do código, e não ter que ficar criando variáveis auxiliares para cada operação de memória.
     type FSM_ALU is (GENERIC_OP, DEC, SHIFT); 
     type FSM_JUMP is (JMP, JMPR, BZ, BNZ, BCS, BCC, BEQ, BNEQ, BGT, BLT);  
 
@@ -82,6 +82,7 @@ begin
     p_fsm_cycle : process(CLK)
     begin
         if rising_edge(CLK) then
+            WE <= '0';
             if (RESET = '1') then
                 -- registradores
                 REG(3)            <= x"00"; -- D
@@ -92,9 +93,10 @@ begin
                 IR            <= x"00";
                 PC            <= x"00";
                 MAR           <= x"00";
+                MAR           <= x"00";
                 MBR           <= x"00";
                 -- SP = 254 !!
-                SP            <= x"FE";
+                SP            <= to_unsigned(254, 8);
                 STATE         <= FETCH;
             else
                 case STATE is
@@ -131,29 +133,40 @@ begin
                                 ALU_CMD <= opcode;
                             end if;
                         
-                        elsif opcode(2) = '0' then -- instrução de memória
-                        
-                        -- TODO: preencher as operações de memória
-                            if opcode(0) = '0' then -- instruções que utilizam apenas um registrador;
-                                
-                                case op2 is 
-                                    when "00" => -- push
-                                        --guarda o valor de Rx (op1) na pilha (SP)
-                                        MAR <= SP;
-                                        MBR <= REG( to_integer(unsigned(op1)) );
-                                        
-                                    when "01" => -- pop
-                                    
-                                    when "10" => -- st
-                                    
-                                    when "11" => --ld
-                                        
-                                        
-                                    
+                        elsif opcode(3 downto 2) = "10" then 
+                            CURRENT_OP <= MEM;
+                            
+                            case opcode is
+                                when "1000" => 
+                                    case op2 is 
+                                        when "00" => -- push
+                                            MEMORY_OP <= PUSH;
+                                            MAR <= std_logic_vector(SP); -- ele é unsigned, por isso precisa converter para std_logic_vector
+                                        when "01" => -- pop
+                                            MEMORY_OP <= POP;
+                                            MAR <= std_logic_vector(SP + 1);
+                                        when "10" => -- st
+                                            MEMORY_OP <= ST;
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        when "11" => -- ld
+                                            MEMORY_OP <= LD;
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        when others => null;
                                     end case;
-                                
-                                
-                        
+                                    
+                                when "1001" => -- ldr
+                                    MEMORY_OP <= LDR;
+                                    MAR <= REG(to_integer(unsigned(op2)));
+                                    
+                                when "1010" => -- str
+                                    MEMORY_OP <= STR;
+                                    MAR <= REG(to_integer(unsigned(op2)));
+                                    
+                                when "1011" => -- mov
+                                    MEMORY_OP <= MOV;
+                                    
+                                when others => null;
+                            end case;
                             
                         
                         else -- instrução de salto ou halt
@@ -189,6 +202,19 @@ begin
                         if IR(7) = "0" then -- instruções de ALU
                             NULL; -- iremos salvar o dado da operação com a ALU no estado EXECUTE
                         end if;
+
+                        if CURRENT_OP = MEM then
+                            if MEMORY_OP = PUSH or MEMORY_OP = STR then
+                                MBR <= REG(to_integer(unsigned(op1))); -- Dado vai pro Buffer
+                                WE <= '1';
+                            elsif MEMORY_OP = ST then
+                                MAR <= RAM_DOUT; -- Endereço destino vai pro Address Register
+                                MBR <= REG(to_integer(unsigned(op1))); -- Dado vai pro Buffer
+                                WE <= '1';
+                            end if;
+                        end if;
+
+
                         
                         STATE <= EXECUTE;
 
@@ -212,7 +238,39 @@ begin
                                         MBR <= PC + 1;
                                 end case;
                             when MEM =>
-                                MEMORY_ST <= MEM_WRITE;
+                                case MEMORY_OP is
+                                    when PUSH =>
+                                        SP <= SP - 1;
+                                        PC <= std_logic_vector(unsigned(PC) + 1);
+                                        MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        
+                                    when POP =>
+                                        -- No POP, LD e LDR, o dado lido vai da RAM direto pro Registrador
+                                        REG(to_integer(unsigned(op1))) <= RAM_DOUT;
+                                        SP <= SP + 1;
+                                        PC <= std_logic_vector(unsigned(PC) + 1);
+                                        MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        
+                                    when ST =>
+                                        PC <= std_logic_vector(unsigned(PC) + 2);
+                                        MAR <= std_logic_vector(unsigned(PC) + 2);
+                                        
+                                    when LD =>
+                                        REG(to_integer(unsigned(op1))) <= RAM_DOUT;
+                                        PC <= std_logic_vector(unsigned(PC) + 2);
+                                        MAR <= std_logic_vector(unsigned(PC) + 2);
+                                        
+                                    when LDR | STR | MOV =>
+                                        if MEMORY_OP = LDR then
+                                            REG(to_integer(unsigned(op1))) <= RAM_DOUT;
+                                        elsif MEMORY_OP = MOV then
+                                            REG(to_integer(unsigned(op1))) <= REG(to_integer(unsigned(op2)));
+                                        end if;
+                                        PC <= std_logic_vector(unsigned(PC) + 1);
+                                        MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        
+                                    when others => null;
+                                end case;
                             when JUMP =>
                                 JUMP_ST <= GENERIC_OP;
                             when HALT =>
@@ -230,6 +288,7 @@ begin
         end if;
     end process p_fsm_cycle;
     
-    RAM_ADDR <= MBR;
+    RAM_ADDR <= MAR;
+    RAM_DIN  <= MBR
     
 end Behavioral;

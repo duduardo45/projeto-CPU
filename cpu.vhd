@@ -5,6 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity cpu is
     port (
         CLK            : in     STD_LOGIC;
+        RESET          : in     STD_LOGIC;
         -- CPU / RAM
         RAM_DIN         : out std_logic_vector(7 downto 0);
         RAM_DOUT        : in  std_logic_vector(7 downto 0);
@@ -52,6 +53,10 @@ architecture Behavioral of cpu is
 
     variable opcode : STD_LOGIC_VECTOR(3 downto 0) := "0000";
     variable op1, op2 : STD_LOGIC_VECTOR(1 downto 0) := "00";
+
+    variable exec_done : boolean := false;
+
+    signal zero_flag, carry_flag, equal_flag, greater_flag, smaller_flag : boolean := false;
     
     -- Variaveis e sinais de memória:
     signal pos_255_reg : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
@@ -116,21 +121,23 @@ begin
                         -- OPCODE "0000" & Rx & Ry
                         -- Rx <- Rx + Ry, pc <- pc + 1
                         if opcode(3) = "0" then -- instruções de ALU
-                        
+                            CURRENT_OP <= ALU;
                             if opcode = "0010" and op2 = "01" then
                                 -- DEC
                                 ALU_A <= REG( to_integer(unsigned(op1)) );
                                 ALU_CMD <= "1011";
-                                
+                                ALU_OP <= DEC;
                             elsif opcode = "0111" then
                                 -- shift operations
                                 ALU_A <= REG( to_integer(unsigned(op1)) );
                                 ALU_CMD <= std_logic_vector(unsigned(opcode) + unsigned("00" & op2)); 
+                                ALU_OP <= SHIFT;
                             else
                                 -- all other operations
                                 ALU_A <= REG( to_integer(unsigned(op1)) );
                                 ALU_B <= REG( to_integer(unsigned(op2)) );
                                 ALU_CMD <= opcode;
+                                ALU_OP <= GENERIC_OP;
                             end if;
                         
                         elsif opcode(3 downto 2) = "10" then 
@@ -172,49 +179,67 @@ begin
                         else -- instrução de salto ou halt
                         
                             if opcode = "1111" then
-                            
                                 -- instrução de parada
-                            
+                                CURRENT_OP <= HALT;
                             end if;
-                            
+                            CURRENT_OP <= JUMP;
                             if IR(3 downto 0) = "0000" then -- jump para o endereço PC+1
-
+                                JUMP_OP <= JMP;
                             end if;
-
+                            
                             -- jump para endereço em Rx
-                            
-
-                            if opcode(1 downto 0) = "00" then
-
-                            elsif opcode(1 downto 0) = "01" then
-                            
-                            elsif opcode(1 downto 0) = "10" then
-                            
-                            end if;
-                            -- TODO: preencher estas operações
-                            
+                            if opcode = "1100" then
+                                if op2 = "01" then -- jmpr
+                                    JUMP_OP <= JMPR;
+                                elsif op2 = "10" then -- bz
+                                    JUMP_OP <= BZ;
+                                elsif op2 = "11" then -- bnz
+                                    JUMP_OP <= BNZ;
+                                end if;
+                            elsif opcode = "1101" then
+                                if op2 = "00" then -- bcs
+                                    JUMP_OP <= BCS;
+                                elsif op2 = "01" then -- bcc
+                                    JUMP_OP <= BCC;
+                                elsif op2 = "10" then -- beq
+                                    JUMP_OP <= BEQ;
+                                elsif op2 = "11" then -- bneq
+                                    JUMP_OP <= BNEQ;
+                                end if;
+                            elsif opcode = "1110" then
+                                if op2 = "00" then -- bgt
+                                    JUMP_OP <= BGT;
+                                elsif op2 = "01" then -- blt
+                                    JUMP_OP <= BLT;
+                                end if;
+                            end if;  
                         end if;
                         STATE <= DECODE_2;
 
                     -- DECODE fetched opcode 
                     when DECODE_2 =>
                     -- apenas nos casos que precisa de PC+1
-                        if IR(7) = "0" then -- instruções de ALU
-                            NULL; -- iremos salvar o dado da operação com a ALU no estado EXECUTE
-                        end if;
-
-                        if CURRENT_OP = MEM then
-                            if MEMORY_OP = PUSH or MEMORY_OP = STR then
-                                MBR <= REG(to_integer(unsigned(op1))); -- Dado vai pro Buffer
-                                WE <= '1';
-                            elsif MEMORY_OP = ST then
-                                MAR <= RAM_DOUT; -- Endereço destino vai pro Address Register
-                                MBR <= REG(to_integer(unsigned(op1))); -- Dado vai pro Buffer
-                                WE <= '1';
-                            end if;
-                        end if;
-
-
+                        case CURRENT_OP is
+                            when ALU =>
+                                NULL;
+                            when MEM =>
+                                if MEMORY_OP = PUSH or MEMORY_OP = STR then
+                                    MBR <= REG(to_integer(unsigned(op1))); -- Dado vai pro Buffer
+                                    WE <= '1';
+                                elsif MEMORY_OP = ST then
+                                    MAR <= RAM_DOUT; -- Endereço destino vai pro Address Register
+                                    MBR <= REG(to_integer(unsigned(op1))); -- Dado vai pro Buffer
+                                    WE <= '1';
+                                end if;
+                            when JUMP =>
+                                if JUMP_OP = JMP then
+                                    MAR <= std_logic_vector(unsigned(PC) + 1);
+                                end if;
+                            when HALT =>
+                                NULL;
+                            when others =>
+                                NULL;
+                        end case;
                         
                         STATE <= EXECUTE;
 
@@ -222,21 +247,27 @@ begin
                     when EXECUTE =>
 
                         case CURRENT_OP is
+
                             when ALU =>
-                                case ALU_ST is
+                                case ALU_OP is
                                     when GENERIC_OP =>
                                         REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
-                                        PC <= PC + 1;
-                                        MBR <= PC + 1;
                                     when DEC =>
                                         REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
-                                        PC <= PC + 1;
-                                        MBR <= PC + 1;
                                     when SHIFT =>
                                         REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
-                                        PC <= PC + 1;
-                                        MBR <= PC + 1;
                                 end case;
+                                -- seta as flags logicas de acordo com o resultado da operacao
+                                zero_flag <= (ALU_FLAGS(0) = '1');
+                                greater_flag <= (ALU_FLAGS(1) = '1');
+                                equal_flag <= (ALU_FLAGS(2) = '1');
+                                smaller_flag <= (ALU_FLAGS(3) = '1');
+                                carry_flag <= (ALU_FLAGS(4) = '1');
+                                -- incrementa o PC e MAR para a proxima instrucao
+                                PC <= PC + 1;
+                                MAR <= PC + 1;
+                                exec_done := true;
+
                             when MEM =>
                                 case MEMORY_OP is
                                     when PUSH =>
@@ -271,14 +302,97 @@ begin
                                         
                                     when others => null;
                                 end case;
+                                exec_done := true;
+
                             when JUMP =>
-                                JUMP_ST <= GENERIC_OP;
+                                case JUMP_OP is
+                                    when JMP =>
+                                        PC <= RAM_DOUT;
+                                        MAR <= RAM_DOUT;
+                                    when JMPR =>
+                                        PC <= REG(to_integer(unsigned(op1)));
+                                        MAR <= REG(to_integer(unsigned(op1)));
+                                    when BZ =>
+                                        if zero_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BNZ =>
+                                        if not zero_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BCS =>
+                                        if carry_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BCC =>
+                                        if not carry_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BEQ =>
+                                        if equal_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BNEQ =>
+                                        if not equal_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BGT =>
+                                        if greater_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when BLT =>
+                                        if smaller_flag then
+                                            PC <= REG(to_integer(unsigned(op1)));
+                                            MAR <= REG(to_integer(unsigned(op1)));
+                                        else
+                                            PC <= std_logic_vector(unsigned(PC) + 1);
+                                            MAR <= std_logic_vector(unsigned(PC) + 1);
+                                        end if;
+                                    when others => 
+                                        -- incrementa o PC e MAR para a proxima instrucao por segurança
+                                        -- para evitar ficar preso em um loop infinito caso 
+                                        -- a instrução de salto não seja reconhecida
+                                        PC <= std_logic_vector(unsigned(PC) + 1);
+                                        MAR <= std_logic_vector(unsigned(PC) + 1);
+                                end case;
+                                exec_done := true;
+
                             when HALT =>
                                 NULL;
                         end case;
 
-
-                        STATE <= FETCH;
+                        if exec_done = true then
+                            exec_done := false;
+                            STATE <= FETCH;
+                        end if;
                         
                     when others =>
                         STATE <= FETCH;
@@ -289,6 +403,6 @@ begin
     end process p_fsm_cycle;
     
     RAM_ADDR <= MAR;
-    RAM_DIN  <= MBR
+    RAM_DIN  <= MBR;
     
 end Behavioral;

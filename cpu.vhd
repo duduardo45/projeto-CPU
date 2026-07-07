@@ -4,14 +4,17 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity cpu is
     port (
-        CLK            : in     STD_LOGIC;
-        RESET          : in     STD_LOGIC;
+        CLK             : in     STD_LOGIC;
+        RESET           : in  STD_LOGIC;
+        -- Instrucao para o LCD
+        IR_OUT          : out std_logic_vector(7 downto 0) -- Exporta a instrução atual
         -- CPU / RAM
         RAM_DIN         : out std_logic_vector(7 downto 0);
         RAM_DOUT        : in  std_logic_vector(7 downto 0);
         RAM_ADDR        : out std_logic_vector(7 downto 0);
         WE              : out std_logic
         -- 
+        
         
     );
 end cpu;
@@ -73,15 +76,15 @@ begin
             FLAGS     => ALU_FLAGS,
             S         => ALU_S
         );
-    u_ram : entity work.RAM_8x256(rtl)
-        port map (
-            CLK     => CLK,
-            DIN     => RAM_DIN,
-            ADDR    => RAM_ADDR,
-            WE      => WE,
-            DOUT    => RAM_DOUT,
-            POS_255 => pos_255_reg
-        );
+    -- u_ram : entity work.RAM_8x256(rtl)
+    --     port map (
+    --         CLK     => CLK,
+    --         DIN     => RAM_DIN,
+    --         ADDR    => RAM_ADDR,
+    --         WE      => WE,
+    --         DOUT    => RAM_DOUT,
+    --         POS_255 => pos_255_reg
+    --     );
             
     
     p_fsm_cycle : process(CLK)
@@ -404,5 +407,6 @@ begin
     
     RAM_ADDR <= MAR;
     RAM_DIN  <= MBR;
+    IR_OUT   <= IR;
     
 end Behavioral;

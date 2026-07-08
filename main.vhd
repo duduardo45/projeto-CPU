@@ -12,7 +12,8 @@ entity main is
         RW       : out STD_LOGIC;
         RS       : out STD_LOGIC;
         LCD_E    : out STD_LOGIC;
-        SF_CE0   : out STD_LOGIC
+        SF_CE0   : out STD_LOGIC;
+        LEDS     : out STD_LOGIC_VECTOR (4 downto 0);
     );
 end main;
 
@@ -32,6 +33,7 @@ architecture Behavioral of main is
     signal ir_reg       : std_logic_vector(7 downto 0);
     signal pos255_reg   : std_logic_vector(7 downto 0);
 
+    signal flags : std_logic_vector(4 downto 0); -- [ZERO, GREATER, EQUAL, SMALLER, CARRY]
 begin
 
     -- INSTANCIAÇÃO DA CPU
@@ -43,7 +45,12 @@ begin
             RAM_DOUT => ram_dout_reg,
             RAM_ADDR => ram_addr_reg,
             WE       => we_reg,
-            IR_OUT   => ir_reg        -- Pega a instrução atual
+            IR_OUT   => ir_reg,        -- Pega a instrução atual
+            ZERO_FLAG       => flags(0),
+            CARRY_FLAG      => flags(4),
+            EQUAL_FLAG      => flags(2),
+            GREATER_FLAG    => flags(1),
+            SMALLER_FLAG    => flags(3)
         );
 
     -- INSTANCIAÇÃO DA MEMÓRIA RAM
@@ -88,4 +95,5 @@ begin
         end if;
     end process p_clock_divider;
 
+    LEDS <= flags; -- Mostra os flags no display de LEDs
 end Behavioral;

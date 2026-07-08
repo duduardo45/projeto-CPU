@@ -1,7 +1,7 @@
 NET "clk" LOC = "C9" | IOSTANDARD = LVCMOS33;
 NET "clk" PERIOD = 20.0ns HIGH 50%;
 
-# Botão BTN_SOUTH utilizado como reset (pino K17) [cite: 76, 77]
+# Botï¿½o BTN_SOUTH utilizado como reset (pino K17) [cite: 76, 77]
 NET "reset" LOC = "K17" | IOSTANDARD = LVTTL | PULLDOWN;
 
 # ---- Sinais de Controlo do LCD ----------------------------
@@ -26,5 +26,12 @@ NET "data_out<0>" LOC = "R15" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
 
 # ---- Desativar StrataFlash --------------------------------
 # O pino sf_ce0 liga-se ao StrataFlash Chip Enable. 
-# Ao mantê-lo a '1' (High), liberta o barramento para o LCD.
+# Ao mantï¿½-lo a '1' (High), liberta o barramento para o LCD.
 NET "sf_ce0" LOC = "D16" | IOSTANDARD = LVCMOS33 | DRIVE = 4 | SLEW = SLOW;
+
+# ---- Portas dos LEDs para indicar os flags ----------------
+NET "LEDS<4>" LOC = "C11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LEDS<3>" LOC = "F11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LEDS<2>" LOC = "E11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LEDS<1>" LOC = "E12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
+NET "LEDS<0>" LOC = "F12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;

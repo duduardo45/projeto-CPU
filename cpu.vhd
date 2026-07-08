@@ -13,9 +13,12 @@ entity cpu is
         RAM_DOUT        : in  std_logic_vector(7 downto 0);
         RAM_ADDR        : out std_logic_vector(7 downto 0);
         WE              : out std_logic
-        -- 
-        
-        
+        -- FLAGS
+        ZERO_FLAG       : out std_logic;
+        CARRY_FLAG      : out std_logic;
+        EQUAL_FLAG      : out std_logic;
+        GREATER_FLAG    : out std_logic;
+        SMALLER_FLAG    : out std_logic
     );
 end cpu;
 -- TODO: criar top level que integre com memória e lcd, e alterar o lcd para receber valores da memoria
@@ -59,7 +62,7 @@ architecture Behavioral of cpu is
 
     variable exec_done : boolean := false;
 
-    signal zero_flag, carry_flag, equal_flag, greater_flag, smaller_flag : boolean := false;
+    signal zero_flag_reg, carry_flag_reg, equal_flag_reg, greater_flag_reg, smaller_flag_reg : boolean := false;
     
     -- Variaveis e sinais de memória:
     signal pos_255_reg : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
@@ -261,11 +264,11 @@ begin
                                         REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
                                 end case;
                                 -- seta as flags logicas de acordo com o resultado da operacao
-                                zero_flag <= (ALU_FLAGS(0) = '1');
-                                greater_flag <= (ALU_FLAGS(1) = '1');
-                                equal_flag <= (ALU_FLAGS(2) = '1');
-                                smaller_flag <= (ALU_FLAGS(3) = '1');
-                                carry_flag <= (ALU_FLAGS(4) = '1');
+                                zero_flag_reg <= (ALU_FLAGS(0) = '1');
+                                greater_flag_reg <= (ALU_FLAGS(1) = '1');
+                                equal_flag_reg <= (ALU_FLAGS(2) = '1');
+                                smaller_flag_reg <= (ALU_FLAGS(3) = '1');
+                                carry_flag_reg <= (ALU_FLAGS(4) = '1');
                                 -- incrementa o PC e MAR para a proxima instrucao
                                 PC <= PC + 1;
                                 MAR <= PC + 1;
@@ -316,7 +319,7 @@ begin
                                         PC <= REG(to_integer(unsigned(op1)));
                                         MAR <= REG(to_integer(unsigned(op1)));
                                     when BZ =>
-                                        if zero_flag then
+                                        if zero_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -324,7 +327,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BNZ =>
-                                        if not zero_flag then
+                                        if not zero_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -332,7 +335,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BCS =>
-                                        if carry_flag then
+                                        if carry_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -340,7 +343,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BCC =>
-                                        if not carry_flag then
+                                        if not carry_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -348,7 +351,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BEQ =>
-                                        if equal_flag then
+                                        if equal_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -356,7 +359,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BNEQ =>
-                                        if not equal_flag then
+                                        if not equal_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -364,7 +367,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BGT =>
-                                        if greater_flag then
+                                        if greater_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -372,7 +375,7 @@ begin
                                             MAR <= std_logic_vector(unsigned(PC) + 1);
                                         end if;
                                     when BLT =>
-                                        if smaller_flag then
+                                        if smaller_flag_reg then
                                             PC <= REG(to_integer(unsigned(op1)));
                                             MAR <= REG(to_integer(unsigned(op1)));
                                         else
@@ -408,5 +411,10 @@ begin
     RAM_ADDR <= MAR;
     RAM_DIN  <= MBR;
     IR_OUT   <= IR;
+    FLAG_ZERO    <= std_logic('1' when zero_flag_reg = true else '0');
+    FLAG_CARRY   <= std_logic('1' when carry_flag_reg = true else '0');
+    FLAG_EQUAL   <= std_logic('1' when equal_flag_reg = true else '0');
+    FLAG_GREATER <= std_logic('1' when greater_flag_reg = true else '0');
+    FLAG_SMALLER <= std_logic('1' when smaller_flag_reg = true else '0');
     
 end Behavioral;

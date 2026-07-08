@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/ise/projects/projetofinal/main_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="main_tb" />
+            <top_module name="math_real" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="26" />
+   <wvobject fp_name="/main_tb/clk_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_tb</obj_property>
+      <obj_property name="ObjectShortName">clk_tb</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/reset_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">reset_tb</obj_property>
+      <obj_property name="ObjectShortName">reset_tb</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/data_out_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">data_out_tb[3:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out_tb[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/rw_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rw_tb</obj_property>
+      <obj_property name="ObjectShortName">rw_tb</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/rs_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rs_tb</obj_property>
+      <obj_property name="ObjectShortName">rs_tb</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/lcd_e_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">lcd_e_tb</obj_property>
+      <obj_property name="ObjectShortName">lcd_e_tb</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/sf_ce0_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sf_ce0_tb</obj_property>
+      <obj_property name="ObjectShortName">sf_ce0_tb</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/leds_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">leds_tb[4:0]</obj_property>
+      <obj_property name="ObjectShortName">leds_tb[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/clk_period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_period</obj_property>
+      <obj_property name="ObjectShortName">clk_period</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/current_op" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">current_op</obj_property>
+      <obj_property name="ObjectShortName">current_op</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/ir" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">ir[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ir[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/pc" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pc[7:0]</obj_property>
+      <obj_property name="ObjectShortName">pc[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/mar" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">mar[7:0]</obj_property>
+      <obj_property name="ObjectShortName">mar[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/mbr" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">mbr[7:0]</obj_property>
+      <obj_property name="ObjectShortName">mbr[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/ram_dout" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">ram_dout[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ram_dout[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/reg[0]" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">[0]</obj_property>
+      <obj_property name="ObjectShortName">reg[0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/reg[1]" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">[1]</obj_property>
+      <obj_property name="ObjectShortName">reg[1]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/reg[2]" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">[2]</obj_property>
+      <obj_property name="ObjectShortName">reg[2]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/reg[3]" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">[3]</obj_property>
+      <obj_property name="ObjectShortName">reg[3]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/sp" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">sp[7:0]</obj_property>
+      <obj_property name="ObjectShortName">sp[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/u_alu/a" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a[7:0]</obj_property>
+      <obj_property name="ObjectShortName">a[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/u_alu/b" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b[7:0]</obj_property>
+      <obj_property name="ObjectShortName">b[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_cpu/u_alu/cmd" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">cmd[3:0]</obj_property>
+      <obj_property name="ObjectShortName">cmd[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/main_tb/uut/u_memory/pos_255" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pos_255[7:0]</obj_property>
+      <obj_property name="ObjectShortName">pos_255[7:0]</obj_property>
+   </wvobject>
+</wave_config>

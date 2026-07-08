@@ -34,6 +34,9 @@ architecture Behavioral of main is
     signal pos255_reg   : std_logic_vector(7 downto 0);
 
     signal flags : std_logic_vector(4 downto 0); -- [ZERO, GREATER, EQUAL, SMALLER, CARRY]
+
+    constant init_wait : integer := 100000000; -- 2 segundos de espera para o LCD inicializar
+    signal counter_init : integer range 0 to init_wait := 0;
 begin
 
     -- INSTANCIAÇÃO DA CPU
@@ -46,11 +49,11 @@ begin
             RAM_ADDR => ram_addr_reg,
             WE       => we_reg,
             IR_OUT   => ir_reg,        -- Pega a instrução atual
-            FLAG_ZERO       => flags(0),
-            FLAG_CARRY      => flags(4),
+            FLAG_ZERO       => flags(4),
+            FLAG_GREATER    => flags(3),
             FLAG_EQUAL      => flags(2),
-            FLAG_GREATER    => flags(1),
-            FLAG_SMALLER    => flags(3)
+            FLAG_SMALLER    => flags(1),
+            FLAG_CARRY      => flags(0)
         );
 
     -- INSTANCIAÇÃO DA MEMÓRIA RAM
@@ -86,12 +89,18 @@ begin
             if reset = '1' then
                 clk_counter <= 0;
                 clk_cpu <= '0';
+                counter_init <= 0;
             else
-                if clk_counter = 49_9 then 
-                    clk_counter <= 0;
-                    clk_cpu <= not clk_cpu; -- Faz transição
+                if counter_init < init_wait then
+                    counter_init <= counter_init + 1;
                 else
-                    clk_counter <= clk_counter + 1;
+                    -- Divisor de clock para gerar o clock da CPU (~2s)
+                    if clk_counter = 49_999_999 then 
+                        clk_counter <= 0;
+                        clk_cpu <= not clk_cpu; -- Faz transição
+                    else
+                        clk_counter <= clk_counter + 1;
+                    end if;
                 end if;
             end if;
         end if;

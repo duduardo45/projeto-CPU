@@ -188,38 +188,39 @@ begin
                             if opcode = "1111" then
                                 -- instrução de parada
                                 CURRENT_OP <= HALT;
+                            else
+                                CURRENT_OP <= JUMP;
+                                if IR(3 downto 0) = "0000" then -- jump para o endereço PC+1
+                                    JUMP_OP <= JMP;
+                                end if;
+                                
+                                -- jump para endereço em Rx
+                                if opcode = "1100" then
+                                    if op2 = "01" then -- jmpr
+                                        JUMP_OP <= JMPR;
+                                    elsif op2 = "10" then -- bz
+                                        JUMP_OP <= BZ;
+                                    elsif op2 = "11" then -- bnz
+                                        JUMP_OP <= BNZ;
+                                    end if;
+                                elsif opcode = "1101" then
+                                    if op2 = "00" then -- bcs
+                                        JUMP_OP <= BCS;
+                                    elsif op2 = "01" then -- bcc
+                                        JUMP_OP <= BCC;
+                                    elsif op2 = "10" then -- beq
+                                        JUMP_OP <= BEQ;
+                                    elsif op2 = "11" then -- bneq
+                                        JUMP_OP <= BNEQ;
+                                    end if;
+                                elsif opcode = "1110" then
+                                    if op2 = "00" then -- bgt
+                                        JUMP_OP <= BGT;
+                                    elsif op2 = "01" then -- blt
+                                        JUMP_OP <= BLT;
+                                    end if;
+                                end if;  
                             end if;
-                            CURRENT_OP <= JUMP;
-                            if IR(3 downto 0) = "0000" then -- jump para o endereço PC+1
-                                JUMP_OP <= JMP;
-                            end if;
-                            
-                            -- jump para endereço em Rx
-                            if opcode = "1100" then
-                                if op2 = "01" then -- jmpr
-                                    JUMP_OP <= JMPR;
-                                elsif op2 = "10" then -- bz
-                                    JUMP_OP <= BZ;
-                                elsif op2 = "11" then -- bnz
-                                    JUMP_OP <= BNZ;
-                                end if;
-                            elsif opcode = "1101" then
-                                if op2 = "00" then -- bcs
-                                    JUMP_OP <= BCS;
-                                elsif op2 = "01" then -- bcc
-                                    JUMP_OP <= BCC;
-                                elsif op2 = "10" then -- beq
-                                    JUMP_OP <= BEQ;
-                                elsif op2 = "11" then -- bneq
-                                    JUMP_OP <= BNEQ;
-                                end if;
-                            elsif opcode = "1110" then
-                                if op2 = "00" then -- bgt
-                                    JUMP_OP <= BGT;
-                                elsif op2 = "01" then -- blt
-                                    JUMP_OP <= BLT;
-                                end if;
-                            end if;  
                         end if;
                         STATE <= DECODE_2;
 
@@ -265,11 +266,11 @@ begin
                                         REG( to_integer(unsigned(IR(3 downto 2))) ) <= ALU_S;
                                 end case;
                                 -- seta as flags logicas de acordo com o resultado da operacao
-                                zero_flag_reg <= (ALU_FLAGS(0) = '1');
-                                greater_flag_reg <= (ALU_FLAGS(1) = '1');
+                                zero_flag_reg <= (ALU_FLAGS(4) = '1');
+                                greater_flag_reg <= (ALU_FLAGS(3) = '1');
                                 equal_flag_reg <= (ALU_FLAGS(2) = '1');
-                                smaller_flag_reg <= (ALU_FLAGS(3) = '1');
-                                carry_flag_reg <= (ALU_FLAGS(4) = '1');
+                                smaller_flag_reg <= (ALU_FLAGS(1) = '1');
+                                carry_flag_reg <= (ALU_FLAGS(0) = '1');
                                 -- incrementa o PC e MAR para a proxima instrucao
                                 PC <= std_logic_vector(unsigned(PC) + 1);
                                 MAR <= std_logic_vector(unsigned(PC) + 1);
@@ -393,7 +394,7 @@ begin
                                 exec_done := true;
 
                             when HALT =>
-                                NULL;
+                                exec_done := false;
                         end case;
 
                         if exec_done = true then

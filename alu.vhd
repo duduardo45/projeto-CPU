@@ -27,15 +27,18 @@ begin
     -- OVERFLOW
     
     cmd_dec: process(CMD, A, B, C_in)
-		variable temp_sum : unsigned(8 downto 0) := 0;
+		variable temp_sum : unsigned(8 downto 0) := (others => '0');
+		variable op1, op2, op3      : unsigned(8 downto 0);
     begin
     -- no tem nenhum sinal de "dispara" no?
 	 FLAGS(0) <= '0';
 	 FLAGS(4) <= '0'; 
     case CMD is
     when "0000" => -- add
-        
-		temp_sum := unsigned('0' & A) + unsigned('0' & B) + unsigned("00000000" & C_in);
+        op1 := unsigned('0' & A);
+		op2 := unsigned('0' & B);
+		--op3 := unsigned(std_logic_vector("00000000") & C_in); -- não conseguimos resolver infelizmente
+		temp_sum := op1 + op2 + op3;
         sum <= std_logic_vector(temp_sum);
             
         S <= sum(7 downto 0);
@@ -70,8 +73,11 @@ begin
         
     when "0001" => -- subtraction
         
+		op1 := unsigned('1' & A);
+		op2 := unsigned('0' & B);
+		-- op3 := unsigned("00000000" & C_in); não conseguimos fazer funcionar
         -- falta verificar se isso no crasha quando o resultado daria negativo
-		  temp_sum := unsigned('1' & A) - unsigned('0' & B) - unsigned("00000000" & C_in);
+		  temp_sum := op1 - op2;
         sum <= std_logic_vector(temp_sum);
             
         S <= sum(7 downto 0);
@@ -104,8 +110,9 @@ begin
 		end if;
         
     when "0010" => -- increment by 1
-    
-		temp_sum := unsigned('0' & A) + unsigned("000000001");
+		
+		op1 := unsigned('0' & A);
+		temp_sum := op1 + 1;
         sum <= std_logic_vector(temp_sum); -- provavelmente poderia ser s 1
         
         S <= sum(7 downto 0);
@@ -401,8 +408,9 @@ begin
 		end if;
     when "1011" => -- decrement by 1
     
+		op1 := unsigned('1' & A);
         -- falta verificar se isso no crasha quando o resultado daria negativo
-		temp_sum := unsigned('1' & A) - unsigned("000000001");
+		temp_sum := op1 - 1;
         sum <= std_logic_vector(temp_sum);
             
         S <= sum(7 downto 0);

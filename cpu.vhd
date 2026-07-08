@@ -7,18 +7,18 @@ entity cpu is
         CLK             : in     STD_LOGIC;
         RESET           : in  STD_LOGIC;
         -- Instrucao para o LCD
-        IR_OUT          : out std_logic_vector(7 downto 0) -- Exporta a instrução atual
+        IR_OUT          : out std_logic_vector(7 downto 0); -- Exporta a instrução atual
         -- CPU / RAM
         RAM_DIN         : out std_logic_vector(7 downto 0);
         RAM_DOUT        : in  std_logic_vector(7 downto 0);
         RAM_ADDR        : out std_logic_vector(7 downto 0);
-        WE              : out std_logic
+        WE              : out std_logic;
         -- FLAGS
-        ZERO_FLAG       : out std_logic;
-        CARRY_FLAG      : out std_logic;
-        EQUAL_FLAG      : out std_logic;
-        GREATER_FLAG    : out std_logic;
-        SMALLER_FLAG    : out std_logic
+        FLAG_ZERO       : out std_logic;
+        FLAG_CARRY      : out std_logic;
+        FLAG_EQUAL      : out std_logic;
+        FLAG_GREATER    : out std_logic;
+        FLAG_SMALLER    : out std_logic
     );
 end cpu;
 -- TODO: criar top level que integre com memória e lcd, e alterar o lcd para receber valores da memoria
@@ -26,10 +26,10 @@ architecture Behavioral of cpu is
     
     -- registradores
     signal SP  : UNSIGNED(7 downto 0) := to_unsigned(254, 8);
-    signal IR  : STD_LOGIC_VECTOR(7 downto 0) := to_unsigned(0, 8);
-    signal PC  : STD_LOGIC_VECTOR(7 downto 0) := to_unsigned(0, 8);
-    signal MAR : STD_LOGIC_VECTOR(7 downto 0) := to_unsigned(0, 8);
-    signal MBR : STD_LOGIC_VECTOR(7 downto 0) := to_unsigned(0, 8);
+    signal IR  : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+    signal PC  : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+    signal MAR : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
+    signal MBR : STD_LOGIC_VECTOR(7 downto 0) := (others => '0');
     
     
     type reg_t is array (natural range <>) of STD_LOGIC_VECTOR(7 downto 0);
@@ -47,7 +47,7 @@ architecture Behavioral of cpu is
     signal CURRENT_OP : FSM_OPS := JUMP;
     signal MEMORY_OP  : FSM_MEMORY := MEM_WRITE;
     signal ALU_OP     : FSM_ALU := GENERIC_OP;
-    signal JUMP_OP    : FSM_JUMP := GENERIC_OP;
+    signal JUMP_OP    : FSM_JUMP := JMP;
 
     signal ALU_A     : STD_LOGIC_VECTOR(7 downto 0) := x"00";
     signal ALU_B     : STD_LOGIC_VECTOR(7 downto 0) := x"00";
@@ -56,11 +56,6 @@ architecture Behavioral of cpu is
     signal ALU_CMD   : STD_LOGIC_VECTOR(3 downto 0) := x"0";
     signal ALU_CIN   : STD_LOGIC := '0';
     signal ALU_COUT  : STD_LOGIC := '0';
-
-    variable opcode : STD_LOGIC_VECTOR(3 downto 0) := "0000";
-    variable op1, op2 : STD_LOGIC_VECTOR(1 downto 0) := "00";
-
-    variable exec_done : boolean := false;
 
     signal zero_flag_reg, carry_flag_reg, equal_flag_reg, greater_flag_reg, smaller_flag_reg : boolean := false;
     
@@ -91,6 +86,12 @@ begin
             
     
     p_fsm_cycle : process(CLK)
+		
+
+		 variable opcode : STD_LOGIC_VECTOR(3 downto 0) := "0000";
+		 variable op1, op2 : STD_LOGIC_VECTOR(1 downto 0) := "00";
+
+		 variable exec_done : boolean := false;
     begin
         if rising_edge(CLK) then
             WE <= '0';
@@ -126,7 +127,7 @@ begin
                         -- add Rx, Ry
                         -- OPCODE "0000" & Rx & Ry
                         -- Rx <- Rx + Ry, pc <- pc + 1
-                        if opcode(3) = "0" then -- instruções de ALU
+                        if opcode(3) = '0' then -- instruções de ALU
                             CURRENT_OP <= ALU;
                             if opcode = "0010" and op2 = "01" then
                                 -- DEC
@@ -136,7 +137,7 @@ begin
                             elsif opcode = "0111" then
                                 -- shift operations
                                 ALU_A <= REG( to_integer(unsigned(op1)) );
-                                ALU_CMD <= std_logic_vector(unsigned(opcode) + unsigned("00" & op2)); 
+                                ALU_CMD <= std_logic_vector(unsigned(opcode) + (unsigned'("00") & unsigned(op2)));
                                 ALU_OP <= SHIFT;
                             else
                                 -- all other operations
@@ -270,8 +271,8 @@ begin
                                 smaller_flag_reg <= (ALU_FLAGS(3) = '1');
                                 carry_flag_reg <= (ALU_FLAGS(4) = '1');
                                 -- incrementa o PC e MAR para a proxima instrucao
-                                PC <= PC + 1;
-                                MAR <= PC + 1;
+                                PC <= std_logic_vector(unsigned(PC) + 1);
+                                MAR <= std_logic_vector(unsigned(PC) + 1);
                                 exec_done := true;
 
                             when MEM =>
@@ -411,10 +412,10 @@ begin
     RAM_ADDR <= MAR;
     RAM_DIN  <= MBR;
     IR_OUT   <= IR;
-    FLAG_ZERO    <= std_logic('1' when zero_flag_reg = true else '0');
-    FLAG_CARRY   <= std_logic('1' when carry_flag_reg = true else '0');
-    FLAG_EQUAL   <= std_logic('1' when equal_flag_reg = true else '0');
-    FLAG_GREATER <= std_logic('1' when greater_flag_reg = true else '0');
-    FLAG_SMALLER <= std_logic('1' when smaller_flag_reg = true else '0');
+    FLAG_ZERO    <= '1' when zero_flag_reg = true else    '0';
+    FLAG_CARRY   <= '1' when carry_flag_reg = true else   '0';
+    FLAG_EQUAL   <= '1' when equal_flag_reg = true else   '0';
+    FLAG_GREATER <= '1' when greater_flag_reg = true else '0';
+    FLAG_SMALLER <= '1' when smaller_flag_reg = true else '0';
     
 end Behavioral;

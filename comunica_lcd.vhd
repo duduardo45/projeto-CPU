@@ -49,7 +49,6 @@ architecture Behavioral of comunica_lcd is
     signal state_msg : msg_state_t := update_lcd;
 
     -- Texto "MEM[255]: " para a segunda linha
-    type byte_array is array (natural range <>) of std_logic_vector(7 downto 0);
     constant L2_TXT : byte_array(0 to 9) := (x"4D", x"45", x"4D", x"5B", x"32", x"35", x"35", x"5D", x"3A", x"20"); -- o que é esse texto? 
 
     
@@ -72,12 +71,15 @@ architecture Behavioral of comunica_lcd is
         return bcd;
     end function;
 
-    -- Função 2: Converte String de Texto para Vetor de Bits (Do arquivo do professor)
+    -- Função 2: Converte String de Texto para Vetor de Bits (Corrigida)
     function to_std_logic_vector(a : string) return std_logic_vector is
         variable ret : std_logic_vector(a'length*8-1 downto 0);
     begin
         for i in a'range loop
-            ret(i*8+7 downto i*8) := std_logic_vector(to_unsigned(character'pos(a(i)), 8));
+            -- a'high é o tamanho máximo (ex: 16). 
+            -- Quando i=1 (primeira letra), vai para os bits 127 downto 120.
+            -- Quando i=16 (última letra), vai para os bits 7 downto 0.
+            ret((a'high - i)*8 + 7 downto (a'high - i)*8) := std_logic_vector(to_unsigned(character'pos(a(i)), 8));
         end loop;
         return ret;
     end function to_std_logic_vector;
@@ -126,26 +128,26 @@ architecture Behavioral of comunica_lcd is
         32 => to_std_logic_vector("inc RA          "), -- 0010 00 00
         33 => to_std_logic_vector("dec RA          "), -- 0010 00 01
 
-        34 => to_std_logic_vector("0x22           NA"), -- 0010 00 10 (não usado)
-        35 => to_std_logic_vector("0x23           NA"), -- 0010 00 11 (não usado)
+        34 => to_std_logic_vector("0x22          NA"), -- 0010 00 10 (não usado)
+        35 => to_std_logic_vector("0x23          NA"), -- 0010 00 11 (não usado)
 
         36 => to_std_logic_vector("inc RB          "), -- 0010 01 00
         37 => to_std_logic_vector("dec RB          "), -- 0010 01 01
 
-        38 => to_std_logic_vector("0x26           NA"), -- 0010 01 10 (não usado)
-        39 => to_std_logic_vector("0x27           NA"), -- 0010 01 11 (não usado)
+        38 => to_std_logic_vector("0x26          NA"), -- 0010 01 10 (não usado)
+        39 => to_std_logic_vector("0x27          NA"), -- 0010 01 11 (não usado)
 
         40 => to_std_logic_vector("inc RC          "), -- 0010 10 00
         41 => to_std_logic_vector("dec RC          "), -- 0010 10 01
 
-        42 => to_std_logic_vector("0x2A           NA"), -- 0010 10 10 (não usado)
-        43 => to_std_logic_vector("0x2B           NA"), -- 0010 10 11 (não usado)
+        42 => to_std_logic_vector("0x2A          NA"), -- 0010 10 10 (não usado)
+        43 => to_std_logic_vector("0x2B          NA"), -- 0010 10 11 (não usado)
 
         44 => to_std_logic_vector("inc RD          "), -- 0010 11 00
         45 => to_std_logic_vector("dec RD          "), -- 0010 11 01
 
-        46 => to_std_logic_vector("0x2E           NA"), -- 0010 11 10 (não usado)
-        47 => to_std_logic_vector("0x2F           NA"), -- 0010 11 11 (não usado)
+        46 => to_std_logic_vector("0x2E          NA"), -- 0010 11 10 (não usado)
+        47 => to_std_logic_vector("0x2F          NA"), -- 0010 11 11 (não usado)
 
 
         -- === OPERAÇÕES LÓGICAS (0011 a 0111) ===
@@ -188,27 +190,27 @@ architecture Behavioral of comunica_lcd is
         -- not Rx (0101 Rx 00)
         80 => to_std_logic_vector("not RA          "),
 
-        81 => to_std_logic_vector("0x51           NA"), -- 0101 00 01 (não usado)
-        82 => to_std_logic_vector("0x52           NA"), -- 0101 00 10 (não usado)
-        83 => to_std_logic_vector("0x53           NA"), -- 0101 00 11 (não usado)
+        81 => to_std_logic_vector("0x51          NA"), -- 0101 00 01 (não usado)
+        82 => to_std_logic_vector("0x52          NA"), -- 0101 00 10 (não usado)
+        83 => to_std_logic_vector("0x53          NA"), -- 0101 00 11 (não usado)
         
         84 => to_std_logic_vector("not RB          "),
         
-        85 => to_std_logic_vector("0x55           NA"), -- 0101 01 01 (não usado)
-        86 => to_std_logic_vector("0x56           NA"), -- 0101 01 10 (não usado)
-        87 => to_std_logic_vector("0x57           NA"), -- 0101 01 11 (não usado)
+        85 => to_std_logic_vector("0x55          NA"), -- 0101 01 01 (não usado)
+        86 => to_std_logic_vector("0x56          NA"), -- 0101 01 10 (não usado)
+        87 => to_std_logic_vector("0x57          NA"), -- 0101 01 11 (não usado)
         
         88 => to_std_logic_vector("not RC          "),
         
-        89 => to_std_logic_vector("0x59           NA"), -- 0101 10 01 (não usado)
-        90 => to_std_logic_vector("0x5A           NA"), -- 0101 10 10 (não usado)
-        91 => to_std_logic_vector("0x5B           NA"), -- 0101 10 11 (não usado)
+        89 => to_std_logic_vector("0x59          NA"), -- 0101 10 01 (não usado)
+        90 => to_std_logic_vector("0x5A          NA"), -- 0101 10 10 (não usado)
+        91 => to_std_logic_vector("0x5B          NA"), -- 0101 10 11 (não usado)
         
         92 => to_std_logic_vector("not RD          "),
 
-        93 => to_std_logic_vector("0x5D           NA"), -- 0101 11 01 (não usado)
-        94 => to_std_logic_vector("0x5E           NA"), -- 0101 11 10 (não usado)
-        95 => to_std_logic_vector("0x5F           NA"), -- 0101 11 11 (não usado)
+        93 => to_std_logic_vector("0x5D          NA"), -- 0101 11 01 (não usado)
+        94 => to_std_logic_vector("0x5E          NA"), -- 0101 11 10 (não usado)
+        95 => to_std_logic_vector("0x5F          NA"), -- 0101 11 11 (não usado)
         
         -- xor Rx, Ry (0110 Rx Ry)
         96 => to_std_logic_vector("xor RA, RA      "),
@@ -326,19 +328,19 @@ architecture Behavioral of comunica_lcd is
         194 => to_std_logic_vector("bz RA           "), -- 1100 00 10
         195 => to_std_logic_vector("bnz RA          "), -- 1100 00 11
         
-        196 => to_std_logic_vector("0xC4           NA"), -- 1100 01 00 (não usado)
+        196 => to_std_logic_vector("0xC4          NA"), -- 1100 01 00 (não usado)
 
         197 => to_std_logic_vector("jmpr RB         "), -- 1100 01 01
         198 => to_std_logic_vector("bz RB           "), -- 1100 01 10
         199 => to_std_logic_vector("bnz RB          "), -- 1100 01 11
 
-        200 => to_std_logic_vector("0xC8           NA"), -- 1100 10 00 (não usado)
+        200 => to_std_logic_vector("0xC8          NA"), -- 1100 10 00 (não usado)
         
         201 => to_std_logic_vector("jmpr RC         "), -- 1100 10 01
         202 => to_std_logic_vector("bz RC           "), -- 1100 10 10
         203 => to_std_logic_vector("bnz RC          "), -- 1100 10 11
 
-        204 => to_std_logic_vector("0xCC           NA"), -- 1100 11 00 (não usado)
+        204 => to_std_logic_vector("0xCC          NA"), -- 1100 11 00 (não usado)
         
         205 => to_std_logic_vector("jmpr RD         "), -- 1100 11 01
         206 => to_std_logic_vector("bz RD           "), -- 1100 11 10
@@ -366,48 +368,48 @@ architecture Behavioral of comunica_lcd is
         224 => to_std_logic_vector("bgt RA          "), -- 1110 00 00
         225 => to_std_logic_vector("blt RA          "), -- 1110 00 01
         
-        226 => to_std_logic_vector("0xE2           NA"), -- 1110 00 10 (não usado)
-        227 => to_std_logic_vector("0xE3           NA"), -- 1110 00 11 (não usado)
+        226 => to_std_logic_vector("0xE2          NA"), -- 1110 00 10 (não usado)
+        227 => to_std_logic_vector("0xE3          NA"), -- 1110 00 11 (não usado)
         
         228 => to_std_logic_vector("bgt RB          "), -- 1110 01 00
         229 => to_std_logic_vector("blt RB          "), -- 1110 01 01
         
-        230 => to_std_logic_vector("0xE6           NA"), -- 1110 01 10 (não usado)
-        231 => to_std_logic_vector("0xE7           NA"), -- 1110 01 11 (não usado)
+        230 => to_std_logic_vector("0xE6          NA"), -- 1110 01 10 (não usado)
+        231 => to_std_logic_vector("0xE7          NA"), -- 1110 01 11 (não usado)
         
         232 => to_std_logic_vector("bgt RC          "), -- 1110 10 00
         233 => to_std_logic_vector("blt RC          "), -- 1110 10 01
         
-        234 => to_std_logic_vector("0xEA           NA"), -- 1110 10 10 (não usado)
-        235 => to_std_logic_vector("0xEB           NA"), -- 1110 10 11 (não usado)
+        234 => to_std_logic_vector("0xEA          NA"), -- 1110 10 10 (não usado)
+        235 => to_std_logic_vector("0xEB          NA"), -- 1110 10 11 (não usado)
         
         236 => to_std_logic_vector("bgt RD          "), -- 1110 11 00
         237 => to_std_logic_vector("blt RD          "), -- 1110 11 01
 
-        238 => to_std_logic_vector("0xEE           NA"), -- 1110 11 10 (não usado)
-        239 => to_std_logic_vector("0xEF           NA"), -- 1110 11 11 (não usado)
+        238 => to_std_logic_vector("0xEE          NA"), -- 1110 11 10 (não usado)
+        239 => to_std_logic_vector("0xEF          NA"), -- 1110 11 11 (não usado)
         
         -- === CONTROLE (1111) ===
         240 => to_std_logic_vector("halt            "), -- 1111 00 00
 
-        241 => to_std_logic_vector("0xF1           NA"), -- 1111 00 01 (não usado)
-        242 => to_std_logic_vector("0xF2           NA"), -- 1111 00 10 (não usado)
-        243 => to_std_logic_vector("0xF3           NA"), -- 1111 00 11 (não usado)
-        244 => to_std_logic_vector("0xF4           NA"), -- 1111 01 00 (não usado)
-        245 => to_std_logic_vector("0xF5           NA"), -- 1111 01 01 (não usado)
-        246 => to_std_logic_vector("0xF6           NA"), -- 1111 01 10 (não usado)
-        247 => to_std_logic_vector("0xF7           NA"), -- 1111 01 11 (não usado)
-        248 => to_std_logic_vector("0xF8           NA"), -- 1111 10 00 (não usado)
-        249 => to_std_logic_vector("0xF9           NA"), -- 1111 10 01 (não usado)
-        250 => to_std_logic_vector("0xFA           NA"), -- 1111 10 10 (não usado)
-        251 => to_std_logic_vector("0xFB           NA"), -- 1111 10 11 (não usado)
-        252 => to_std_logic_vector("0xFC           NA"), -- 1111 11 00 (não usado)
-        253 => to_std_logic_vector("0xFD           NA"), -- 1111 11 01 (não usado)
-        254 => to_std_logic_vector("0xFE           NA"), -- 1111 11 10 (não usado)
-        255 => to_std_logic_vector("0xFF           NA"), -- 1111 11 11 (não usado)
+        241 => to_std_logic_vector("0xF1          NA"), -- 1111 00 01 (não usado)
+        242 => to_std_logic_vector("0xF2          NA"), -- 1111 00 10 (não usado)
+        243 => to_std_logic_vector("0xF3          NA"), -- 1111 00 11 (não usado)
+        244 => to_std_logic_vector("0xF4          NA"), -- 1111 01 00 (não usado)
+        245 => to_std_logic_vector("0xF5          NA"), -- 1111 01 01 (não usado)
+        246 => to_std_logic_vector("0xF6          NA"), -- 1111 01 10 (não usado)
+        247 => to_std_logic_vector("0xF7          NA"), -- 1111 01 11 (não usado)
+        248 => to_std_logic_vector("0xF8          NA"), -- 1111 10 00 (não usado)
+        249 => to_std_logic_vector("0xF9          NA"), -- 1111 10 01 (não usado)
+        250 => to_std_logic_vector("0xFA          NA"), -- 1111 10 10 (não usado)
+        251 => to_std_logic_vector("0xFB          NA"), -- 1111 10 11 (não usado)
+        252 => to_std_logic_vector("0xFC          NA"), -- 1111 11 00 (não usado)
+        253 => to_std_logic_vector("0xFD          NA"), -- 1111 11 01 (não usado)
+        254 => to_std_logic_vector("0xFE          NA"), -- 1111 11 10 (não usado)
+        255 => to_std_logic_vector("0xFF          NA"), -- 1111 11 11 (não usado)
 
         -- Qualquer OpCode não mapeado
-        others => to_std_logic_vector("INVALID OPCODE   ")
+        others => to_std_logic_vector("INVALID OPCODE  ")
     );
 
 begin
@@ -625,7 +627,7 @@ begin
                                 end if;
 
                             when others => null;
-                        
+									end case;
                     end case;
                 end if;
             end if;

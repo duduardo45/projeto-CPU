@@ -13,7 +13,7 @@ entity main is
         RS       : out STD_LOGIC;
         LCD_E    : out STD_LOGIC;
         SF_CE0   : out STD_LOGIC;
-        LEDS     : out STD_LOGIC_VECTOR (4 downto 0);
+        LEDS     : out STD_LOGIC_VECTOR (4 downto 0)
     );
 end main;
 
@@ -46,11 +46,11 @@ begin
             RAM_ADDR => ram_addr_reg,
             WE       => we_reg,
             IR_OUT   => ir_reg,        -- Pega a instrução atual
-            ZERO_FLAG       => flags(0),
-            CARRY_FLAG      => flags(4),
-            EQUAL_FLAG      => flags(2),
-            GREATER_FLAG    => flags(1),
-            SMALLER_FLAG    => flags(3)
+            FLAG_ZERO       => flags(0),
+            FLAG_CARRY      => flags(4),
+            FLAG_EQUAL      => flags(2),
+            FLAG_GREATER    => flags(1),
+            FLAG_SMALLER    => flags(3)
         );
 
     -- INSTANCIAÇÃO DA MEMÓRIA RAM
@@ -73,7 +73,9 @@ begin
             rw       => RW,
             rs       => RS,
             lcd_e    => LCD_E,
-            sf_ce0   => SF_CE0
+            sf_ce0   => SF_CE0,
+            ir_in    => ir_reg,          -- Pega a instrução atual da CPU
+            pos_255_in => pos255_reg     -- Pega o conteúdo da posição
 
         );
 
@@ -85,7 +87,7 @@ begin
                 clk_counter <= 0;
                 clk_cpu <= '0';
             else
-                if clk_counter = 49_999_999 then 
+                if clk_counter = 49_9 then 
                     clk_counter <= 0;
                     clk_cpu <= not clk_cpu; -- Faz transição
                 else
